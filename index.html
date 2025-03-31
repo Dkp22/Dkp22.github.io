@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity WebGL Player</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div class="container">
+        <div id="unity-canvas"></div>
+        <div id="unity-loading-bar">
+            <div id="unity-logo"></div>
+            <div id="unity-progress-bar-empty">
+                <div id="unity-progress-bar-full"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var buildUrl = "webglBuild/Build";
+        var loaderUrl = buildUrl + "/NeueUfer.loader.js";
+        var config = {
+            dataUrl: buildUrl + "/NeueUfer.data.br",
+            frameworkUrl: buildUrl + "/NeueUfer.framework.js.br",
+            codeUrl: buildUrl + "/NeueUfer.wasm.br",
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "DefaultCompany",
+            productName: "NeueUfer",
+            productVersion: "1.0",
+            showBanner: false
+        };
+
+        var container = document.querySelector("#unity-canvas");
+        var canvas = document.createElement("canvas");
+        var loadingBar = document.querySelector("#unity-loading-bar");
+        var progressBarFull = document.querySelector("#unity-progress-bar-full");
+        container.appendChild(canvas);
+
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+            createUnityInstance(canvas, config, (progress) => {
+                progressBarFull.style.width = 100 * progress + "%";
+            }).then((unityInstance) => {
+                loadingBar.style.display = "none";
+            }).catch((message) => {
+                alert(message);
+            });
+        };
+        document.body.appendChild(script);
+    </script>
+</body>
+</html> 
