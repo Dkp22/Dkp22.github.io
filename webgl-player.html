@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player</title>
+    <link rel="shortcut icon" href="webglBuild/TemplateData/favicon.ico">
+    <link rel="stylesheet" href="styles/custom.css">
+    <style>
+        #back-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px 15px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 100;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        #back-button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <button id="back-button" onclick="window.location.href='index.html'">← Back to Selection</button>
+    <div id="unity-container">
+        <canvas id="unity-canvas" width=1280 height=720 tabindex="-1"></canvas>
+        <div id="unity-loading-bar">
+            <div id="unity-logo"></div>
+            <div id="unity-progress-bar-empty">
+                <div id="unity-progress-bar-full"></div>
+            </div>
+        </div>
+        <div id="unity-warning"></div>
+    </div>
+
+    <script>
+        // Parse URL parameters to determine which build to load
+        const urlParams = new URLSearchParams(window.location.search);
+        const buildParam = urlParams.get('build');
+        
+        // Set default values
+        let buildDirectory = "webglBuild";
+        let buildName = "NeueUfer";
+        let pageTitle = "Andere Ufer";
+        
+        // Configure build based on URL parameter
+        if (buildParam === 'endlich-paul') {
+            buildDirectory = "webGLBuild1";
+            buildName = "EndlichPaul";
+            pageTitle = "Endlich Paul";
+            // Add specific CSS for this build if needed
+            document.querySelector("link[rel='shortcut icon']").href = buildDirectory + "/TemplateData/favicon.ico";
+        }
+        
+        // Update page title
+        document.title = "Unity WebGL Player | " + pageTitle;
+        
+        // Setup Unity WebGL
+        var container = document.querySelector("#unity-container");
+        var canvas = document.querySelector("#unity-canvas");
+        var loadingBar = document.querySelector("#unity-loading-bar");
+        var progressBarFull = document.querySelector("#unity-progress-bar-full");
+        var warningBanner = document.querySelector("#unity-warning");
+
+        // Shows a temporary message banner/ribbon for a few seconds, or
+        // a permanent error message on top of the canvas if type=='error'.
+        function unityShowBanner(msg, type) {
+            function updateBannerVisibility() {
+                warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+            }
+            var div = document.createElement('div');
+            div.innerHTML = msg;
+            warningBanner.appendChild(div);
+            if (type == 'error') div.style = 'background: red; padding: 10px;';
+            else {
+                if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+                setTimeout(function() {
+                    warningBanner.removeChild(div);
+                    updateBannerVisibility();
+                }, 5000);
+            }
+            updateBannerVisibility();
+        }
+
+        // Load the appropriate style sheet
+        var styleLink = document.createElement('link');
+        styleLink.rel = 'stylesheet';
+        styleLink.href = buildDirectory + "/TemplateData/style.css";
+        document.head.appendChild(styleLink);
+
+        // Configure the build paths
+        var buildUrl = buildDirectory + "/Build";
+        var loaderUrl = buildUrl + "/" + buildName + ".loader.js";
+        
+        // Handle mobile devices
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            var meta = document.createElement('meta');
+            meta.name = 'viewport';
+            meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+            document.getElementsByTagName('head')[0].appendChild(meta);
+        }
+        
+        // Show loading bar
+        loadingBar.style.display = "block";
+
+        // Create and load Unity instance
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+            // Check if we're on GitHub Pages
+            const isGitHubPages = window.location.hostname.includes('github.io');
+            
+            // For GitHub Pages, we should only try uncompressed files
+            if (isGitHubPages) {
+                console.log("Running on GitHub Pages - using uncompressed files only");
+                var uncompressedConfig = {
+                    dataUrl: buildUrl + "/" + buildName + ".data",
+                    frameworkUrl: buildUrl + "/" + buildName + ".framework.js",
+                    codeUrl: buildUrl + "/" + buildName + ".wasm",
+                    streamingAssetsUrl: "StreamingAssets",
+                    companyName: "Doppel Real",
+                    productName: buildName,
+                    productVersion: "1.0.2",
+                    showBanner: unityShowBanner,
+                };
+                
+                createUnityInstance(canvas, uncompressedConfig, (progress) => {
+                    progressBarFull.style.width = 100 * progress + "%";
+                    console.log("Loading progress: " + (progress * 100) + "%");
+                }).then((unityInstance) => {
+                    loadingBar.style.display = "none";
+                    console.log("WebGL build loaded successfully");
+                }).catch((message) => {
+                    console.error("Error loading WebGL build:", message);
+                    alert("Failed to load WebGL content. Please check the browser console for details.");
+                });
+            } else {
+                // Original fallback mechanism for local or custom server deployment
+                // Try uncompressed files first
+                var uncompressedConfig = {
+                    dataUrl: buildUrl + "/" + buildName + ".data",
+                    frameworkUrl: buildUrl + "/" + buildName + ".framework.js",
+                    codeUrl: buildUrl + "/" + buildName + ".wasm",
+                    streamingAssetsUrl: "StreamingAssets",
+                    companyName: "Doppel Real",
+                    productName: buildName,
+                    productVersion: "1.0.2",
+                    showBanner: unityShowBanner,
+                };
+                
+                console.log("Attempting to load with uncompressed files...");
+                createUnityInstance(canvas, uncompressedConfig, (progress) => {
+                    progressBarFull.style.width = 100 * progress + "%";
+                    console.log("Loading progress: " + (progress * 100) + "%");
+                }).then((unityInstance) => {
+                    loadingBar.style.display = "none";
+                    console.log("WebGL build loaded successfully with uncompressed files");
+                }).catch((message) => {
+                    console.error("Error loading with uncompressed files:", message);
+                    console.log("Trying with compressed files...");
+                    
+                    // If uncompressed fails, try with compressed files
+                    var compressedConfig = {
+                        dataUrl: buildUrl + "/" + buildName + ".data.br",
+                        frameworkUrl: buildUrl + "/" + buildName + ".framework.js.br",
+                        codeUrl: buildUrl + "/" + buildName + ".wasm.br",
+                        streamingAssetsUrl: "StreamingAssets",
+                        companyName: "Doppel Real",
+                        productName: buildName,
+                        productVersion: "1.0.2",
+                        showBanner: unityShowBanner,
+                    };
+                    
+                    createUnityInstance(canvas, compressedConfig, (progress) => {
+                        progressBarFull.style.width = 100 * progress + "%";
+                        console.log("Loading progress: " + (progress * 100) + "%");
+                    }).then((unityInstance) => {
+                        loadingBar.style.display = "none";
+                        console.log("WebGL build loaded successfully with compressed files");
+                    }).catch((secondMessage) => {
+                        console.error("Error loading with compressed files:", secondMessage);
+                        alert("Failed to load WebGL content. Please check the browser console for details.");
+                    });
+                });
+            }
+        };
+        document.body.appendChild(script);
+    </script>
+</body>
+</html> 

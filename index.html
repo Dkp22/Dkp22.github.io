@@ -1,53 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-us">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unity WebGL Player</title>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>WebGL Player Selection</title>
     <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .selection-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .selection-button {
+            padding: 1.5rem 3rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .selection-button:hover {
+            background-color: #357ab8;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .selection-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div id="unity-canvas"></div>
-        <div id="unity-loading-bar">
-            <div id="unity-logo"></div>
-            <div id="unity-progress-bar-empty">
-                <div id="unity-progress-bar-full"></div>
-            </div>
+    <div class="selection-container">
+        <h1 class="title">Select an Experience</h1>
+        <div class="button-container">
+            <button class="selection-button" onclick="window.location.href='webgl-player.html?build=andere-ufer'">Andere Ufer</button>
+            <button class="selection-button" onclick="window.location.href='webgl-player.html?build=endlich-paul'">Endlich Paul</button>
         </div>
     </div>
-    <script>
-        var buildUrl = "webglBuild/Build";
-        var loaderUrl = buildUrl + "/NeueUfer.loader.js";
-        var config = {
-            dataUrl: buildUrl + "/NeueUfer.data.br",
-            frameworkUrl: buildUrl + "/NeueUfer.framework.js.br",
-            codeUrl: buildUrl + "/NeueUfer.wasm.br",
-            streamingAssetsUrl: "StreamingAssets",
-            companyName: "DefaultCompany",
-            productName: "NeueUfer",
-            productVersion: "1.0",
-            showBanner: false
-        };
-
-        var container = document.querySelector("#unity-canvas");
-        var canvas = document.createElement("canvas");
-        var loadingBar = document.querySelector("#unity-loading-bar");
-        var progressBarFull = document.querySelector("#unity-progress-bar-full");
-        container.appendChild(canvas);
-
-        var script = document.createElement("script");
-        script.src = loaderUrl;
-        script.onload = () => {
-            createUnityInstance(canvas, config, (progress) => {
-                progressBarFull.style.width = 100 * progress + "%";
-            }).then((unityInstance) => {
-                loadingBar.style.display = "none";
-            }).catch((message) => {
-                alert(message);
-            });
-        };
-        document.body.appendChild(script);
-    </script>
 </body>
 </html> 
